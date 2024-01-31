@@ -5,6 +5,8 @@ from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
 from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 
 from algorithms.Aggregations import (
@@ -37,9 +39,19 @@ class ProposedModel:
         if models is None:
             models = [
                 [
-                    RandomForestClassifier(n_jobs=-1),
-                    ExtraTreesClassifier(n_jobs=-1),
-                    DecisionTreeClassifier(),
+                    RandomForestClassifier(n_estimators=10, random_state=42, n_jobs=-1),
+                    RandomForestClassifier(n_estimators=50, random_state=42, n_jobs=-1),
+                    RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1),
+                ],
+                [
+                    MLPClassifier(hidden_layer_sizes=(100,), max_iter=2000, random_state=42),
+                    MLPClassifier(hidden_layer_sizes=(50, 50), max_iter=2000, random_state=42),
+                    MLPClassifier(hidden_layer_sizes=(100, 50, 25), max_iter=2000, random_state=42),
+                ],
+                [
+                    SVC(kernel='linear', C=1, random_state=42),
+                    SVC(kernel='rbf', C=1, random_state=42),
+                    SVC(kernel='poly', C=1, random_state=42),
                 ],
                 [
                     KNeighborsClassifier(n_neighbors=1, metric="manhattan", n_jobs=-1),
