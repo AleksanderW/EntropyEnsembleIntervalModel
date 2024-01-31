@@ -71,9 +71,19 @@ class ProposedModel:
         if models is None:
             self.models = [
                 [
-                    RandomForestClassifier(n_jobs=-1, random_state=self.random_state),
-                    ExtraTreesClassifier(n_jobs=-1, random_state=self.random_state),
-                    DecisionTreeClassifier(random_state=self.random_state),
+                    RandomForestClassifier(n_estimators=10, random_state=42, n_jobs=-1),
+                    RandomForestClassifier(n_estimators=50, random_state=42, n_jobs=-1),
+                    RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1),
+                ],
+                [
+                    MLPClassifier(hidden_layer_sizes=(100,), max_iter=2000, random_state=42),
+                    MLPClassifier(hidden_layer_sizes=(50, 50), max_iter=2000, random_state=42),
+                    MLPClassifier(hidden_layer_sizes=(100, 50, 25), max_iter=2000, random_state=42),
+                ],
+                [
+                    SVC(kernel='linear', C=1, random_state=42),
+                    SVC(kernel='rbf', C=1, random_state=42),
+                    SVC(kernel='poly', C=1, random_state=42),
                 ],
                 [
                     KNeighborsClassifier(n_neighbors=1, metric="manhattan", n_jobs=-1),
