@@ -21,9 +21,9 @@ from algorithms.Settings import (
     ALG_orders,
     parallel_evaluation,
 )
-from algorithms.classifiers.Pomysl_Algorithm import PomyslAlgorithm
-from algorithms.classifiers.Pomysl_Algorithm_Entropy import PomyslEntropyAlgorithm
-from algorithms.classifiers.Pomysl_Algorithm_Entropy_Groups import PomyslEntropyGroupsAlgorithm
+from algorithms.classifiers.Proposed_Model import ProposedModel
+from algorithms.classifiers.Proposed_Entropy_Model import ProposedEntropyModel
+from algorithms.classifiers.Proposed_Entropy_Groups_Model import ProposedEntropyGroupsModel
 
 path = op.join("..", "results")
 if not os.path.exists(path):
@@ -41,26 +41,9 @@ selector_file_paths = {
 #     create_logs(selector)
 for step, n_split, random_state in product(steps, n_splits, random_states):
     clfs_loop = classifiers.copy()
-    # clfs_loop += [
-    #     (
-    #         ProposedAlgorithm(
-    #             amount_of_subtables=subtab,
-    #             aggregation_type=agg,
-    #             order=order,
-    #             models=ALG_models,
-    #             table_split=table_split,
-    #             random_state=random_state,
-    #         ),
-    #         f"PROP_ALG_s{subtab}_{agg}_{order}_{table_split}",
-    #     )
-    #     for agg, subtab, order, table_split in product(
-    #         ALG_aggregations, ALG_amount_of_subtables, ALG_orders, ALG_split_variant
-    #     )
-    # ]
-    ####
     clfs_loop += [
         (
-            PomyslAlgorithm(
+            ProposedModel(
                 aggregation_type=agg,
                 order=order,
                 random_state=random_state,
@@ -73,7 +56,7 @@ for step, n_split, random_state in product(steps, n_splits, random_states):
 
     clfs_loop += [
         (
-            PomyslEntropyAlgorithm(
+            ProposedEntropyModel(
                 aggregation_type=agg,
                 order=order,
                 random_state=random_state,
@@ -85,7 +68,7 @@ for step, n_split, random_state in product(steps, n_splits, random_states):
     ]
     clfs_loop += [
         (
-            PomyslEntropyGroupsAlgorithm(
+            ProposedEntropyGroupsModel(
                 aggregation_type=agg,
                 order=order,
                 random_state=random_state,
@@ -95,54 +78,6 @@ for step, n_split, random_state in product(steps, n_splits, random_states):
         )
         for agg, order in product(ALG_aggregations, ALG_orders)
     ]
-    ####
-    # clfs_loop += [
-    #     (
-    #         PomyslStackingAlgorithm(
-    #             aggregation_type=agg,
-    #             order=order,
-    #             random_state=random_state,
-    #             models=ALG_models,
-    #         ),
-    #         f"POM_STACKING_{agg}_{order}",
-    #     )
-    #     for agg, order in product(ALG_aggregations, ALG_orders)
-    # ]
-    #
-    # clfs_loop += [
-    #     (
-    #         PomyslStackingAlgorithm(
-    #             aggregation_type=agg,
-    #             order=order,
-    #             random_state=random_state,
-    #             models=ALG_models,
-    #         ),
-    #         f"POM_STACKING_{agg}_{order}",
-    #     )
-    #     for agg, order in product(ALG_aggregations, ALG_orders)
-    # ]
-    #
-    # clfs_loop += [
-    #     (
-    #         PomyslStackingEntropyAlgorithm(
-    #             aggregation_type=agg,
-    #             order=order,
-    #             random_state=random_state,
-    #             models=ALG_models,
-    #         ),
-    #         f"POM_StackingEntropy_{agg}_{order}",
-    #     )
-    #     for agg, order in product(ALG_aggregations, ALG_orders)
-    # ]
-    # clfs_loop += [
-    #     (
-    #         StackingEntropy(
-    #             random_state=random_state,
-    #             models=ALG_models,
-    #         ),
-    #         f"STACKING_Entropy",
-    #     )
-    # ]
     clfs_loop = set_params(clfs_loop, random_state)
 
     for dataset in datasets:

@@ -23,7 +23,7 @@ from algorithms.MinMaxArrays import find_min_max_pairs
 from algorithms.Orders import xu_yager_order, lex1_order, lex2_order, get_decisions
 
 
-class PomyslAlgorithm:
+class ProposedModel:
     def __init__(
         self,
         aggregation_type="A1",
@@ -209,7 +209,7 @@ if __name__ == "__main__":
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42
     )
-    alg = PomyslAlgorithm()
+    alg = ProposedModel()
     alg.fit(X_train, y_train)
     y_pred = alg.predict(X_test)
     print(accuracy_score(y_test, y_pred))

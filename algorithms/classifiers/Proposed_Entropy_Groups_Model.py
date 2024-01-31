@@ -2,7 +2,6 @@ import copy
 
 import numpy as np
 from scipy.special import softmax
-from sklearn.base import ClassifierMixin, BaseEstimator
 from sklearn.datasets import load_iris
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, roc_auc_score, log_loss
@@ -27,7 +26,7 @@ from algorithms.MinMaxArrays import find_min_max_pairs
 from algorithms.Orders import xu_yager_order, lex1_order, lex2_order, get_decisions
 
 
-class PomyslEntropyAlgorithm(BaseEstimator, ClassifierMixin):
+class ProposedEntropyGroupsModel:
     """
     Parameters:
         aggregation_type (str): The type of aggregation to use. Defaults to "A1".
@@ -101,11 +100,8 @@ class PomyslEntropyAlgorithm(BaseEstimator, ClassifierMixin):
         )
 
     def fit(self, X_train, y_train):
-
         self.y_labels = np.unique(y_train)
-
         self.log_losses = {}
-
         skf = RepeatedStratifiedKFold(n_splits=2, random_state=self.random_state)
         chosen_models = []
 
@@ -141,33 +137,36 @@ class PomyslEntropyAlgorithm(BaseEstimator, ClassifierMixin):
 
             average_loss = sum(loss for _, loss in model_mean_losses) / len(model_mean_losses)
             sorted_losses = sorted(model_mean_losses, key=lambda x: x[1])
-            filtered_models = [model for model, loss in sorted_losses[:2]]
-            filtered_models += [model for model, loss in sorted_losses[2:] if loss <= average_loss]
+            filtered_models = [(model, loss) for model, loss in sorted_losses[:2]]
+            filtered_models += [(model, loss) for model, loss in sorted_losses[2:] if loss <= average_loss]
 
-            # Save models and mean losses to a text file
-            removed_models = [model for model, loss in sorted_losses[2:] if loss > average_loss]
-            save_file_path = "!Selected_Models_Info.txt"
-            with open(save_file_path, "a") as file:
-                for model, loss in sorted_losses:
-                    file.write(f"{model}, Mean Loss: {loss}\n")
-                for model in filtered_models:
-                    file.write(f"++++Chosen Models: {model}\n")
-                for model in removed_models:
-                    file.write(f"----REMOVED MODELS: {model}\n")
-                file.write("\n")
-            self.log_losses["removed_models"] = removed_models.__str__()
             chosen_models.append(filtered_models)
 
+        # Calculate the mean loss for each group of models within chosen_models
+        group_mean_losses = [np.mean([loss for _, loss in group]) for group in chosen_models]
+
+        # Calculate the average of group_mean_losses
+        average_group_mean_loss = np.mean(group_mean_losses)
+
+        filtered_chosen_models = [group for group, mean_loss in zip(chosen_models, group_mean_losses) if
+                                  mean_loss <= average_group_mean_loss]
+
+        if len(filtered_chosen_models) < 2:
+            # Keep the two groups with the lowest mean losses
+            sorted_chosen_models = sorted(chosen_models, key=lambda group: np.mean([loss for _, loss in group]))
+            filtered_chosen_models = sorted_chosen_models[:2]
+
         row_fit_models = []
-        for model_list in chosen_models:
+
+        for model_list in filtered_chosen_models:
             models_for_row = []
 
-            for model in model_list:
+            for model, _ in model_list:
                 model.fit(X_train, y_train)
                 models_for_row.append(model)
 
             row_fit_models.append(models_for_row)
-
+        self.log_losses["removed_models"] = row_fit_models.__str__()
         self.fit_group_of_models = row_fit_models
 
         # for i, model_list in enumerate(self.models):
@@ -308,7 +307,7 @@ if __name__ == "__main__":
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42
     )
-    alg = PomyslEntropyAlgorithm()
+    alg = ProposedEntropyGroupsModel()
     alg.fit(X_train, y_train)
     y_pred = alg.predict(X_test)
     print(accuracy_score(y_test, y_pred))
